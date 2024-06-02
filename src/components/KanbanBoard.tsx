@@ -2,7 +2,7 @@ import PlusIcon from '../icons/PlusIcon';
 import {useMemo, useState} from 'react';
 import { Column, Id } from '../types'
 import ColumnContainer from './ColumnContainer';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'; 
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'; 
 import { SortableContext, arrayMove } from '@dnd-kit/sortable'; 
 import { createPortal } from 'react-dom';
 function KanbanBoard() {
@@ -54,7 +54,16 @@ function KanbanBoard() {
             return arrayMove(columns, activeColumnIndex, overColumnIndex)
         });
     }
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 3
+            }
+        })
+    )
     return (
+        
         <div className='
             m-auto
             flex
@@ -65,7 +74,8 @@ function KanbanBoard() {
             overflow-y-hidden
             px-[40px]
         '>
-            <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
+            
+            <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
             <div className='m-auto flex gap-4'>
                 <div className='flex gap-4'>
                     <SortableContext items={columnsId}>
@@ -94,6 +104,7 @@ function KanbanBoard() {
                 document.body // Add the missing second argument
             )}
             </DndContext>
+            
         </div>
     );
 }
