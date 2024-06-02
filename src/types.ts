@@ -1,6 +1,6 @@
 export type Id = string | number;
 
 export type Column = {
-    id: IdleDeadline;
+    id: Id;
     title: string;
 }
