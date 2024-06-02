@@ -3,21 +3,28 @@ import TrashIcon from "../icons/TrashIcon";
 
 import { Column, Id } from "../types";
 import { CSS } from "@dnd-kit/utilities"
+import { useState } from "react";
+import PlusIcon from "../icons/PlusIcon";
+
 interface Props {
     column: Column;
     deleteColumn: (id: Id) => void;
+    updateColumn: (id: Id, title: string) => void;
+
+    createTask: (columnId: Id) => void;
 }
 
 function ColumnContainer(props: Props) {
-    const { column, deleteColumn } = props;
+    const { column, deleteColumn, updateColumn, createTask } = props;
+    const [editMode, setEditMode] = useState(false);
     const {setNodeRef, attributes, listeners, transform, transition, isDragging} =useSortable({
         id: column.id,
         data: {
             type: "Column",
             column
-        }
+        },
+        disabled: editMode
     });
-
     const style = {
         transition,
         transform: CSS.Transform.toString(transform)
@@ -30,9 +37,9 @@ function ColumnContainer(props: Props) {
         style={style}
         className="
             bg-columnBackgroundColor
-            opacity-40
+            opacity-60
             border-2
-            border-rose-500
+            border-cyan-400
             w-[350px]
             h-[500px]
             max-h-[500px]
@@ -59,6 +66,9 @@ function ColumnContainer(props: Props) {
             <div
                 {...attributes}
                 {...listeners} 
+                onClick={() => {
+                    setEditMode(true);
+                }}
                 className="
                 bg-mainBackgroundColor
                 text-md
@@ -86,12 +96,41 @@ function ColumnContainer(props: Props) {
                         rounded-full
                     ">o
                         </div>
-                        {column.title}
+                        {!editMode && column.title}
+                        {editMode && (
+                            <input
+                            className="
+                                bg-black
+                                focus:border-cyan-300
+                                border
+                                rounded
+                                outline-none
+                                px-2
+                            "
+                            value={column.title}
+                             autoFocus
+                             onChange={(e) => {
+                                updateColumn(column.id, e.target.value);
+                             }}
+                             onBlur={() => {
+                                setEditMode(false);
+                             }}
+                             onKeyDown={(e) => {
+                                if (e.key !== 'Enter') return
+                                setEditMode(false);
+                             }}
+                              />
+                        )}
                         </div>
                         <button className="
                             stroke-gray-500
-                            hover:stroke-white
+                            transition
+                            ease-in-out
+                            delay-100
+                            hover:stroke-rose-500
+                            hover:-translate-y-1 hover:scale-110
                             hover:bg-columnBackgroundColor
+                            hover:
                         " onClick={() => {
                             deleteColumn(column.id);
                         }}><TrashIcon /></button>
@@ -99,7 +138,17 @@ function ColumnContainer(props: Props) {
             {/* column task container */}
             <div className="flex flex-grow">Content</div>
             {/* column footer */}
-            <div>Footer</div>
+            <button className="
+                flex gap-2 items-center
+                border-columnBackgroundColor border-2
+                rounded-md p-4 border-x-columnBackgroundColor
+                hover:bg-mainBackgroundColor hover:text-cyan-300
+                active:bg-black 
+            "
+            onClick={() => {
+                createTask(column.id);
+            }}
+            ><PlusIcon /> Add Task</button>
         </div>
     )
 }

@@ -1,6 +1,6 @@
 import PlusIcon from '../icons/PlusIcon';
 import {useMemo, useState} from 'react';
-import { Column, Id } from '../types'
+import { Column, Id, Task } from '../types'
 import ColumnContainer from './ColumnContainer';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'; 
 import { SortableContext, arrayMove } from '@dnd-kit/sortable'; 
@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 function KanbanBoard() {
     const [columns, setColumns] = useState<Column[]>([]);
     const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+    const [tasks, setTasks] = useState<Task[]>([]);
     const columnsId = useMemo(() => columns.map((col) => col.id), [columns])
     
     const generateId = () => {
@@ -23,10 +24,31 @@ function KanbanBoard() {
         setColumns([...columns, columnToAdd]);
 
     } 
+    
     const deleteColumn = (id: Id) => {
         const filteredColumns = columns.filter((col) => col.id !== id);
         setColumns(filteredColumns);
     }
+
+
+    const updateColumn = (id: Id, title: string) => {
+        const newColumns = columns.map((col) => {
+            if (col.id !== id) return col;
+            return { ...col, title };
+        })
+
+        setColumns(newColumns);
+    }
+
+    const createTask = (columnId: Id) => {
+        const newTask: Task =  {
+            id: generateId(),
+            columnId,
+            content: `Task ${tasks.length + 1}`
+        }
+        setTasks([...tasks, newTask]);
+    }
+
     const onDragStart = (event: DragStartEvent) => {
         // console.log("Dragging started...", event)
         if (event.active.data.current?.type === "Column") {
@@ -80,7 +102,7 @@ function KanbanBoard() {
                 <div className='flex gap-4'>
                     <SortableContext items={columnsId}>
                     {columns.map((col) => (
-                        <ColumnContainer key={col.id} column={col} deleteColumn={deleteColumn} />
+                        <ColumnContainer key={col.id} column={col} deleteColumn={deleteColumn} updateColumn={updateColumn} createTask={createTask} />
                     ))}
                     </SortableContext>
                     </div>
@@ -99,7 +121,7 @@ function KanbanBoard() {
             </div>
             {createPortal(
                 <DragOverlay>
-                    {activeColumn && (<ColumnContainer column={activeColumn} deleteColumn={deleteColumn} />)}
+                    {activeColumn && (<ColumnContainer column={activeColumn} deleteColumn={deleteColumn} updateColumn={updateColumn} createTask={createTask}/>)}
                 </DragOverlay>,
                 document.body // Add the missing second argument
             )}
